@@ -7,6 +7,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -14,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import java.util.List;
 
 // Helpful Links
 // https://stackoverflow.com/questions/69626022/is-there-any-way-to-hide-components-in-the-layout-editor-in-android-studio For Visibility
@@ -37,6 +40,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Float initialY = (float) -99;
     Boolean firstRun = true;
     Boolean readyForNewInput = true;
+
+    private HighscoreDataSource dataSource;
+    EditText nameInput;
+    TextView dbInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +70,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         tvX = findViewById((R.id.tvX));
         tvY = findViewById((R.id.tvY));
+
+        dataSource = new HighscoreDataSource(this);
+        dataSource.open();
+        nameInput = findViewById(R.id.etName);
+        dbInfo = findViewById(R.id.ViewDB);
     }
 
     public void Play(View v) {
@@ -116,8 +128,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
     }
-    public void HighScores(View v) {
+    public void addHighscore(View v) {
+        String name;
+        name = nameInput.getText().toString();
 
+        dataSource.createHighscore(name, 4);
+
+        String message = "";
+        List<Highscore> list = dataSource.getAllHighscores();
+        for (int i = 0; i < list.toArray().length; i++)
+        {
+            message += list.get(i).toString();
+        }
+        dbInfo.setText(message);
     }
 
     @Override
