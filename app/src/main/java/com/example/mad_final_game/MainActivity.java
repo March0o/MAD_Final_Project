@@ -1,5 +1,7 @@
 package com.example.mad_final_game;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -36,14 +38,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Button btnWest = null;
     Button btnSouth = null;
 
-    Float initialX = (float) -99;
-    Float initialY = (float) -99;
+    boolean emulator = false;
+    Float initialX = (float) -0;
+    Float initialY = (float) -0;
     Boolean firstRun = true;
     Boolean readyForNewInput = true;
-
-    private HighscoreDataSource dataSource;
-    EditText nameInput;
-    TextView dbInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,11 +69,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         tvX = findViewById((R.id.tvX));
         tvY = findViewById((R.id.tvY));
-
-        dataSource = new HighscoreDataSource(this);
-        dataSource.open();
-        nameInput = findViewById(R.id.etName);
-        dbInfo = findViewById(R.id.ViewDB);
     }
 
     public void Play(View v) {
@@ -86,15 +80,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public void onSensorChanged(SensorEvent event) {
 
+        int xSensor, ySensor;
+        //  Emulator V Actual Device
+        if (emulator){
+            // On Emulator; Sensors are 0:z,2:x,1:y
+            xSensor = 2;
+            ySensor = 1;
+        }
+        else {
+            // On Device; Sensors are 0:x,1:y,2:z
+            xSensor = 0;
+            ySensor = 1;
+        }
+
         float x = 0, y = 0, tilt = 3;
         // Assign x/y values
         if (firstRun)
         {
-            initialX = event.values[0];
-            initialY = event.values[1];
+            initialX = event.values[xSensor];
+            initialY = event.values[ySensor];
 
-            x = event.values[0] - initialX;
-            y = event.values[1] - initialY;
+            x = event.values[xSensor] - initialX;
+            y = event.values[ySensor] - initialY;
 
             tvX.setText(String.valueOf(x));
             tvY.setText(String.valueOf(y));
@@ -102,45 +109,51 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         else
         {
-            x = event.values[0] - initialX;
-            y = event.values[1] - initialY;
+            x = event.values[xSensor] - initialX;
+            y = event.values[ySensor] - initialY;
 
             tvX.setText(String.valueOf(x));
             tvY.setText(String.valueOf(y));
         }
 
-        if (x < 1 && y < 1){
+        if ((x < 1 && y < 1) && ((x > -1 && y > -1))) { // Close to 0 and not ready for input, set ready for next input
             readyForNewInput = true;
         }
-        // Click logic
-        if (y > tilt){
-            if (readyForNewInput){
+        if (y > tilt) { // East
+            if (readyForNewInput) {
                 btnEast.setText("Yippee");
                 readyForNewInput = false;
             }
-        }
-        else if (y < tilt){
-            if (!readyForNewInput){
+        } else if (y < -tilt) { // West
+            if (readyForNewInput) {
+                btnWest.setText("Wow");
+                readyForNewInput = false;
+            }
+        } else if (x < -tilt) { // North
+            if (readyForNewInput) {
+                btnNorth.setText("Hooray");
+                readyForNewInput = false;
+            }
+        } else if (x > tilt) { // South
+            if (readyForNewInput) {
+                btnSouth.setText("Yahoo");
+                readyForNewInput = false;
+            }
+        } else { // Reset all buttons when returning to neutral
+            if (!readyForNewInput) {
                 btnEast.setText("East");
+                btnWest.setText("West");
+                btnNorth.setText("North");
+                btnSouth.setText("South");
                 readyForNewInput = true;
             }
         }
 
-
     }
-    public void addHighscore(View v) {
-        String name;
-        name = nameInput.getText().toString();
 
-        dataSource.createHighscore(name, 4);
-
-        String message = "";
-        List<Highscore> list = dataSource.getAllHighscores();
-        for (int i = 0; i < list.toArray().length; i++)
-        {
-            message += list.get(i).toString();
-        }
-        dbInfo.setText(message);
+    public void OpenHighScores(View v){
+        Intent gameActivity = new Intent(MainActivity.this, HighscoreActivity.class);
+        startActivity(gameActivity);
     }
 
     @Override
