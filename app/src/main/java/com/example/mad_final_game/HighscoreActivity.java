@@ -1,5 +1,6 @@
 package com.example.mad_final_game;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -19,6 +20,7 @@ public class HighscoreActivity extends AppCompatActivity {
     private HighscoreDataSource dataSource;
     EditText nameInput;
     TextView dbInfo;
+    Integer score;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +34,9 @@ public class HighscoreActivity extends AppCompatActivity {
         });
         dataSource = new HighscoreDataSource(this);
         dataSource.open();
+
+        Intent intent = getIntent();
+        score = intent.getIntExtra("Score",0);
         nameInput = findViewById(R.id.etName);
         dbInfo = findViewById(R.id.viewDB);
     }
@@ -40,7 +45,7 @@ public class HighscoreActivity extends AppCompatActivity {
         String name;
         name = nameInput.getText().toString();
 
-        dataSource.createHighscore(name, 4);
+        dataSource.createHighscore(name, score);
 
         String message = "";
         List<Highscore> list = dataSource.getAllHighscores();

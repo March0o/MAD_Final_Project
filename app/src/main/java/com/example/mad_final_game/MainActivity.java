@@ -53,6 +53,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Boolean readyForNewInput = true;
     List<Integer> playerInput = new ArrayList<>();
     List<Integer> roundSequence = new ArrayList<>();
+    Integer roundLength = 3;
+
+    Integer score = 0;
 
 
     @Override
@@ -84,38 +87,42 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     public void Play(View v) {
-        Handler handler = new Handler();
-        Button btnToChange;
+        Handler handler = new Handler(); // Allows Scheduling of the round
 
         // Change to Play Screen
         menuView.setVisibility(View.GONE);
         gameView.setVisibility(View.VISIBLE);
 
         //  Round Setup
-        roundSequence = RandomSequence(4);
-        for (int i = 0;i < roundSequence.toArray().length;i++){
+        roundSequence = RandomSequence(roundLength);
+        for (int i = 0;i <= roundSequence.size();i++){
             int index = i;
             handler.postDelayed(() -> {
-                switch (roundSequence.get(index)) {
-                    case 1:
-                        changeOpacity(btnNorth);
-                        break;
-                    case 2:
-                        changeOpacity(btnEast);
-                        break;
-                    case 3:
-                        changeOpacity(btnSouth);
-                        break;
-                    case 4:
-                        changeOpacity(btnWest);
-                        break;
+                if (index == roundSequence.size()){
+                    tvInput.setText(String.valueOf(roundSequence));
+                    //  Let Player Input
+                    mSensorManager.registerListener((SensorEventListener) this, mSensor,
+                            SensorManager.SENSOR_DELAY_NORMAL);
                 }
-            }, i * 2000);
+                else {
+                    //  Display Sequence
+                    switch (roundSequence.get(index)) {
+                        case 1:
+                            changeOpacity(btnNorth);
+                            break;
+                        case 2:
+                            changeOpacity(btnEast);
+                            break;
+                        case 3:
+                            changeOpacity(btnSouth);
+                            break;
+                        case 4:
+                            changeOpacity(btnWest);
+                            break;
+                    }
+                }
+            }, i * 1000);
         }
-
-        //  Let Player Input
-        mSensorManager.registerListener((SensorEventListener) this, mSensor,
-                SensorManager.SENSOR_DELAY_NORMAL);
 
     }
 
@@ -157,48 +164,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             tvY.setText(String.valueOf(y));
         }
 
-        if ((x < 1 && y < 1) && ((x > -1 && y > -1))) { // Close to 0 and not ready for input, set ready for next input
+        if ((x < 1.5 && y < 1.5) && ((x > -1.5 && y > -1.5))) { // Close to 0 and not ready for input, set ready for next input
             readyForNewInput = true;
+            ResetButtons();
         }
-        if (y > tilt) { // East
-            if (readyForNewInput) {
+        if (y > tilt && readyForNewInput) { // East
                 btnEast.getBackground().setAlpha(64);
                 readyForNewInput = false;
                 playerInput.add(2);
-            }
-        } else if (y < -tilt) { // West
-            if (readyForNewInput) {
+        } else if (y < -tilt && readyForNewInput) { // West
                 btnWest.getBackground().setAlpha(64);
                 readyForNewInput = false;
                 playerInput.add(4);
-            }
-        } else if (x < -tilt) { // North
-            if (readyForNewInput) {
+        } else if (x < -tilt && readyForNewInput) { // North
                 btnNorth.getBackground().setAlpha(64);
                 readyForNewInput = false;
                 playerInput.add(1);
-            }
-        } else if (x > tilt) { // South
-            if (readyForNewInput) {
+        } else if (x > tilt && readyForNewInput) { // South
                 btnSouth.getBackground().setAlpha(64);
                 readyForNewInput = false;
                 playerInput.add(3);
-            }
-        } else { // Reset all buttons when returning to neutral
-            if (!readyForNewInput) {
-                btnEast.getBackground().setAlpha(255);
-                btnWest.getBackground().setAlpha(255);
-                btnNorth.getBackground().setAlpha(255);
-                btnSouth.getBackground().setAlpha(255);
-                readyForNewInput = true;
-            }
         }
-        tvInput.setText(String.valueOf( playerInput ));
+
         CorrectInput(roundSequence);
     }
 
     public void OpenHighScores(View v){
         Intent gameActivity = new Intent(MainActivity.this, HighscoreActivity.class);
+        gameActivity.putExtra("Score", score);
         startActivity(gameActivity);
     }
 
@@ -211,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // https://www.geeksforgeeks.org/generating-random-numbers-in-java/
 
         Random rand = new Random();
-        int max = 3;
+        int max = 4;
         List<Integer> sequence = new ArrayList<>();
 
         for (int i = 0; i < length;i++){
@@ -229,25 +222,41 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // First change: Set alpha to 64 after 0ms
         btnToChange.getBackground().setAlpha(64);
         // Second change: Set alpha back to 255 after 3 seconds
-        handler.postDelayed(() -> btnToChange.getBackground().setAlpha(255), 1000);
+        handler.postDelayed(() -> btnToChange.getBackground().setAlpha(255), 500);
     }
 
     public void CorrectInput(List<Integer> sequence) {
         if (playerInput.equals(sequence)){
+            mSensorManager.unregisterListener(this);
+            ResetButtons();
+
             Context context = getApplicationContext();
-            CharSequence text = "Hello toast!";
+            CharSequence text = "Nice!";
             int duration = Toast.LENGTH_SHORT;
             Toast toast = Toast.makeText(context, text, duration);
             toast.show();
+
             playerInput.clear();
+            score += roundSequence.size();
+            roundLength += 2;
+            Play(null);
         }
         else  {
             if ((playerInput.size() != sequence.size()) && !playerInput.isEmpty()) {
                 int latestInput = playerInput.get(playerInput.size() - 1);
                 if ( latestInput != sequence.get(playerInput.size() - 1) ){
-                    playerInput.clear();
+
+                    mSensorManager.unregisterListener(this);
+                    OpenHighScores(null);
                 }
             }
         }
+    }
+
+    public void ResetButtons() {
+        btnEast.getBackground().setAlpha(255);
+        btnWest.getBackground().setAlpha(255);
+        btnNorth.getBackground().setAlpha(255);
+        btnSouth.getBackground().setAlpha(255);
     }
 }
