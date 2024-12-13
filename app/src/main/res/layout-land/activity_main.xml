@@ -5,7 +5,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
+    android:background="@drawable/background"
+    android:fadingEdge="vertical"
     tools:context=".MainActivity">
 
 
@@ -45,6 +46,7 @@
             android:layout_marginBottom="20dp"
             android:background="@drawable/triangle_button"
             android:backgroundTint="@color/yellow"
+            android:drawableTint="@color/transparent"
             android:rotation="90"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/VerticalGuideline"
@@ -162,6 +164,7 @@
             android:layout_marginBottom="10sp"
             android:text="Memory Move"
             android:textAlignment="center"
+            android:textColor="#333333"
             android:textSize="48sp" />
 
         <Button
@@ -169,16 +172,20 @@
             android:layout_width="222dp"
             android:layout_height="64dp"
             android:layout_marginBottom="10dp"
+            android:background="@color/buttons"
             android:onClick="Play"
             android:text="PLAY"
+            android:textColor="@color/secondary_text"
             android:textSize="34sp" />
 
         <Button
             android:id="@+id/btnHighScores"
             android:layout_width="158dp"
             android:layout_height="52dp"
+            android:background="@color/buttons"
             android:onClick="OpenHighScores"
-            android:text="High Scores" />
+            android:text="High Scores"
+            android:textColor="@color/secondary_text" />
 
     </LinearLayout>
 

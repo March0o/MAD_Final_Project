@@ -3,10 +3,13 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="transparent">#00FFFFFF</color>
-    <color name="red">#FF0000</color>
-    <color name="green">#00ff00</color>
-    <color name="blue">#0000FF</color>
-    <color name="yellow">#FFFF00</color>
+    <color name="red">#FF0050</color>
+    <color name="green">#00ff50</color>
+    <color name="blue">#3000FF</color>
+    <color name="yellow">#FFFF50</color>
     <color name="grey">#808080</color>
+    <color name="main_text">#333333	</color>
+    <color name="secondary_text">#E0E0E0</color>
+    <color name="buttons">#FF4C4C</color>
 
 </resources>

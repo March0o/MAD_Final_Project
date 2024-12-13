@@ -230,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // ChatGPT
         Handler handler = new Handler();
         // First change: Set alpha to 64 after 0ms
-        btnToChange.getBackground().setAlpha(64);
+        btnToChange.getBackground().setAlpha(32);
         // Second change: Set alpha back to 255 after 3 seconds
         handler.postDelayed(() -> btnToChange.getBackground().setAlpha(255), 500);
     }
