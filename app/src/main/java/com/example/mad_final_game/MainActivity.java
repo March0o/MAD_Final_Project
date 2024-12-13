@@ -60,13 +60,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-        // Change to Menu Screen
+        // Change back to Menu Screen
         if (menuView != null && gameView != null) {
             menuView.setVisibility(View.VISIBLE);
             gameView.setVisibility(View.GONE);
         }
         ResetButtons();
-
+        //  Reset Game Variables
         firstRun = true;
         roundLength=3;
         score=-1;
@@ -83,19 +83,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
+        //  Get References to Views
         menuView = findViewById(R.id.viewMenu);
         gameView = findViewById(R.id.viewGame);
+        //  Hide Game View
         gameView.setVisibility(View.GONE);
-
+        //  Setup Sensors
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
+        //  Get button References
         btnNorth = findViewById(R.id.btnNorth);
         btnEast = findViewById(R.id.btnEast);
         btnSouth = findViewById(R.id.btnSouth);
         btnWest = findViewById(R.id.btnWest);
-
+        //  Get tv references
         tvX = findViewById((R.id.tvX));
         tvY = findViewById((R.id.tvY));
         tvInput = findViewById(R.id.tvInput);
@@ -113,13 +114,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             int index = i;
 
             handler.postDelayed(() -> {
-                if (index == roundSequence.size()){
+                if (index == roundSequence.size()){ // On Last Run
                     tvInput.setText(String.valueOf(roundSequence));
                     //  Let Player Input
                     mSensorManager.registerListener((SensorEventListener) this, mSensor,
                             SensorManager.SENSOR_DELAY_NORMAL);
                 }
-                else {
+                else { // Display Sequence to remember
                     //  Display Sequence
                     switch (roundSequence.get(index)) {
                         case 1:
@@ -141,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
     public void onSensorChanged(SensorEvent event) {
-
+        //  Variables
         int xSensor, ySensor;
         //  Emulator V Actual Device
         if (emulator){
@@ -154,7 +155,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             xSensor = 0;
             ySensor = 1;
         }
-
         float x = 0, y = 0, tilt = 3;
         // Assign x/y values
         if (firstRun)
@@ -203,6 +203,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         CorrectInput(roundSequence);
     }
     public void OpenHighScores(View v){
+        //  Create intent and open
         Intent gameActivity = new Intent(MainActivity.this, HighscoreActivity.class);
         gameActivity.putExtra("Score", score);
         startActivity(gameActivity);
@@ -213,17 +214,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
     public List<Integer> RandomSequence(int length) {
         // https://www.geeksforgeeks.org/generating-random-numbers-in-java/
-
+        //  Variables
         Random rand = new Random();
         int max = 4;
         List<Integer> sequence = new ArrayList<>();
-
+        //  Create random sequence
         for (int i = 0; i < length;i++){
             int temp;
             temp = rand.nextInt(max);
             sequence.add(temp + 1); // + 1 as nextInt Method is 0 inclusive
         }
-
         return sequence;
     }
     public void changeOpacity(final Button btnToChange) {
@@ -235,7 +235,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         handler.postDelayed(() -> btnToChange.getBackground().setAlpha(255), 500);
     }
     public void CorrectInput(List<Integer> sequence) {
-        if (playerInput.equals(sequence)){
+        if (playerInput.equals(sequence)){ // On Successful PLayer Input
             Handler handler = new Handler(); // Allows Scheduling of the round
             for (int i = 0; i<2; i++)
             {
@@ -261,11 +261,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     }
                 }, i * 3000);}
         }
-        else  {
+        else  { // On unsuccessful input
             if ((playerInput.size() != sequence.size()) && !playerInput.isEmpty()) {
                 int latestInput = playerInput.get(playerInput.size() - 1);
                 if ( latestInput != sequence.get(playerInput.size() - 1) ){
-
                     mSensorManager.unregisterListener(this);
                     OpenHighScores(null);
                 }
@@ -273,6 +272,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
     public void ResetButtons() {
+        //  Set buttons back to full opacity
         btnEast.getBackground().setAlpha(255);
         btnWest.getBackground().setAlpha(255);
         btnNorth.getBackground().setAlpha(255);
@@ -285,12 +285,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         for (int i = 0; i <= 3;i++){
             int index = i;
             handler.postDelayed(() -> {
-                if (index == 0 || index == 2){
+                if (index == 0 || index == 2){ // Every Second loop, hide buttons
                     btnNorth.getBackground().setAlpha(0);
                     btnEast.getBackground().setAlpha(0);
                     btnSouth.getBackground().setAlpha(0);
                     btnWest.getBackground().setAlpha(0);}
-                else {
+                else {  //  Reset Buttons
                     ResetButtons();
                 }
             }, i * 1000);
