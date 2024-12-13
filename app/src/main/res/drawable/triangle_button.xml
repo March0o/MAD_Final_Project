@@ -9,7 +9,8 @@
         <path
             android:name="triangle"
             android:fillColor="@color/white"
-            android:pathData="m 50,0 l 50, 100, -100, 0 z"/>
+            android:pathData="m 50,0 l 50, 100, -100, 0 z"
+            />
     </group>
 
 </vector>

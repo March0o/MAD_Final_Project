@@ -1,5 +1,8 @@
 package com.example.mad_final_game;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -17,10 +20,16 @@ import java.util.List;
 public class HighscoreActivity extends AppCompatActivity {
 
 
+    //  https://stackoverflow.com/questions/2115758/how-do-i-display-an-alert-dialog-on-android
+    //  https://stackoverflow.com/questions/55684053/edittext-in-alert-dialog-android
+
     private HighscoreDataSource dataSource;
     EditText nameInput;
-    TextView dbInfo;
+    TextView tvNumbering;
+    TextView tvName;
+    TextView tvScore;
     Integer score;
+    private int i;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,23 +45,52 @@ public class HighscoreActivity extends AppCompatActivity {
         dataSource.open();
 
         Intent intent = getIntent();
-        score = intent.getIntExtra("Score",0);
-        nameInput = findViewById(R.id.etName);
-        dbInfo = findViewById(R.id.viewDB);
+        score = intent.getIntExtra("Score",-1);
+        tvName = findViewById(R.id.tvName);
+        tvScore = findViewById(R.id.tvScores);
+
+        DisplayScores();
+        if (score != -1){
+            addHighscore(null);
+        }
+        tvNumbering = findViewById(R.id.tvNumbering);
+        tvNumbering.setText("1.\n2.\n3.\n4.\n5.");
+    }
+    public void addHighscore(View v) {
+        Context context = getApplicationContext();
+        nameInput =  new EditText(context);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("ENTER YOUR NAME")
+                .setView(nameInput)
+                .setPositiveButton("SUBMIT", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String name = nameInput.getText().toString();
+                        dataSource.createHighscore(name, score);
+                        DisplayScores();
+                    }
+                })
+                .create();
+        dialog.show();
+    }
+    public void DisplayScores() {
+        String nameMsg = "";
+        String scoreMsg = "";
+
+        List<Highscore> list = dataSource.getAllHighscores();
+
+        // Sort by score in descending order
+        list.sort((h1, h2) -> Integer.compare(h2.getHighscore(), h1.getHighscore()));
+
+        for (int i = 0; i < 5;i++) {
+            nameMsg += list.get(i).getName() + "\n";
+            scoreMsg += list.get(i).getScore() + "\n";
+        }
+        tvName.setText(nameMsg);
+        tvScore.setText(scoreMsg);
     }
 
-    public void addHighscore(View v) {
-        String name;
-        name = nameInput.getText().toString();
-
-        dataSource.createHighscore(name, score);
-
-        String message = "";
-        List<Highscore> list = dataSource.getAllHighscores();
-        for (int i = 0; i < list.toArray().length; i++)
-        {
-            message += list.get(i).toString();
-        }
-        dbInfo.setText(message);
+    public void GoMainMenu(View v) {
+        finish();
     }
 }

@@ -4,9 +4,14 @@ public class Highscore {
     private long id;
     private String Name;
     private int Score;
-
     public long getId() {
         return id;
+    }
+    public int getScore() {
+        return Score;
+    }
+    public String getName() {
+        return Name;
     }
 
     public void setId(long id) {

@@ -21,6 +21,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -54,9 +55,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     List<Integer> playerInput = new ArrayList<>();
     List<Integer> roundSequence = new ArrayList<>();
     Integer roundLength = 3;
+    Integer score = -1;
 
-    Integer score = 0;
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Change to Menu Screen
+        if (menuView != null && gameView != null) {
+            menuView.setVisibility(View.VISIBLE);
+            gameView.setVisibility(View.GONE);
+        }
+        ResetButtons();
 
+        firstRun = true;
+        roundLength=3;
+        score=-1;
+        playerInput.clear();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +100,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         tvY = findViewById((R.id.tvY));
         tvInput = findViewById(R.id.tvInput);
     }
-
     public void Play(View v) {
         Handler handler = new Handler(); // Allows Scheduling of the round
 
@@ -97,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         roundSequence = RandomSequence(roundLength);
         for (int i = 0;i <= roundSequence.size();i++){
             int index = i;
+
             handler.postDelayed(() -> {
                 if (index == roundSequence.size()){
                     tvInput.setText(String.valueOf(roundSequence));
@@ -121,11 +136,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             break;
                     }
                 }
-            }, i * 1000);
+            }, i * 1000 + 1000);
         }
 
     }
-
     public void onSensorChanged(SensorEvent event) {
 
         int xSensor, ySensor;
@@ -188,18 +202,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         CorrectInput(roundSequence);
     }
-
     public void OpenHighScores(View v){
         Intent gameActivity = new Intent(MainActivity.this, HighscoreActivity.class);
         gameActivity.putExtra("Score", score);
         startActivity(gameActivity);
     }
-
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
-
     public List<Integer> RandomSequence(int length) {
         // https://www.geeksforgeeks.org/generating-random-numbers-in-java/
 
@@ -215,7 +226,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         return sequence;
     }
-
     public void changeOpacity(final Button btnToChange) {
         // ChatGPT
         Handler handler = new Handler();
@@ -224,22 +234,32 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Second change: Set alpha back to 255 after 3 seconds
         handler.postDelayed(() -> btnToChange.getBackground().setAlpha(255), 500);
     }
-
     public void CorrectInput(List<Integer> sequence) {
         if (playerInput.equals(sequence)){
-            mSensorManager.unregisterListener(this);
-            ResetButtons();
+            Handler handler = new Handler(); // Allows Scheduling of the round
+            for (int i = 0; i<2; i++)
+            {
+                int index = i;
+                handler.postDelayed(() -> {
+                    if (index == 0){
+                        mSensorManager.unregisterListener(this);
+                        ResetButtons();
 
-            Context context = getApplicationContext();
-            CharSequence text = "Nice!";
-            int duration = Toast.LENGTH_SHORT;
-            Toast toast = Toast.makeText(context, text, duration);
-            toast.show();
+                        Context context = getApplicationContext();
+                        CharSequence text = "Nice!";
+                        int duration = Toast.LENGTH_SHORT;
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
 
-            playerInput.clear();
-            score += roundSequence.size();
-            roundLength += 2;
-            Play(null);
+                        playerInput.clear();
+                        score += roundSequence.size();
+                        roundLength += 2;
+                        Celebration();
+                    }
+                    else {
+                        Play(null);
+                    }
+                }, i * 3000);}
         }
         else  {
             if ((playerInput.size() != sequence.size()) && !playerInput.isEmpty()) {
@@ -252,11 +272,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         }
     }
-
     public void ResetButtons() {
         btnEast.getBackground().setAlpha(255);
         btnWest.getBackground().setAlpha(255);
         btnNorth.getBackground().setAlpha(255);
         btnSouth.getBackground().setAlpha(255);
+    }
+
+    public void Celebration() {
+        Handler handler = new Handler(); // Allows Scheduling of the round
+
+        for (int i = 0; i <= 3;i++){
+            int index = i;
+            handler.postDelayed(() -> {
+                if (index == 0 || index == 2){
+                    btnNorth.getBackground().setAlpha(0);
+                    btnEast.getBackground().setAlpha(0);
+                    btnSouth.getBackground().setAlpha(0);
+                    btnWest.getBackground().setAlpha(0);}
+                else {
+                    ResetButtons();
+                }
+            }, i * 1000);
+        }
     }
 }
