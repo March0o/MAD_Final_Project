@@ -9,7 +9,7 @@
     <color name="yellow">#FFFF50</color>
     <color name="grey">#808080</color>
     <color name="main_text">#333333	</color>
-    <color name="secondary_text">#E0E0E0</color>
+    <color name="secondary_text">#808080</color>
     <color name="buttons">#FF4C4C</color>
 
 </resources>

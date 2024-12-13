@@ -1,7 +1,8 @@
 package com.example.mad_final_game;
 
-import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -11,7 +12,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,12 +21,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.ConsoleHandler;
 
 // Helpful Links
 // https://stackoverflow.com/questions/69626022/is-there-any-way-to-hide-components-in-the-layout-editor-in-android-studio For Visibility
@@ -40,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     TextView tvX = null;
     TextView tvY = null;
-    TextView tvInput = null;
+    TextView tvRound = null;
 
     Button btnNorth = null;
     Button btnEast = null;
@@ -53,9 +50,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Boolean firstRun = true;
     Boolean readyForNewInput = true;
     List<Integer> playerInput = new ArrayList<>();
-    List<Integer> roundSequence = new ArrayList<>();
-    Integer roundLength = 3;
-    Integer score = -1;
+    List<Integer> roundSequence = RandomSequence(4);
+    Integer score = 0;
+    Integer roundCounter = 1;
 
     @Override
     protected void onResume() {
@@ -68,11 +65,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         ResetButtons();
         //  Reset Game Variables
         firstRun = true;
-        roundLength=3;
-        score=-1;
+        roundSequence = RandomSequence(4);
+        score=0;
+        roundCounter = 1;
         playerInput.clear();
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,23 +96,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //  Get tv references
         tvX = findViewById((R.id.tvX));
         tvY = findViewById((R.id.tvY));
-        tvInput = findViewById(R.id.tvInput);
+        tvRound = findViewById(R.id.tvRound);
     }
     public void Play(View v) {
         Handler handler = new Handler(); // Allows Scheduling of the round
-
         // Change to Play Screen
         menuView.setVisibility(View.GONE);
         gameView.setVisibility(View.VISIBLE);
-
+        tvRound.setText("Round " + roundCounter);
         //  Round Setup
-        roundSequence = RandomSequence(roundLength);
         for (int i = 0;i <= roundSequence.size();i++){
             int index = i;
-
             handler.postDelayed(() -> {
                 if (index == roundSequence.size()){ // On Last Run
-                    tvInput.setText(String.valueOf(roundSequence));
                     //  Let Player Input
                     mSensorManager.registerListener((SensorEventListener) this, mSensor,
                             SensorManager.SENSOR_DELAY_NORMAL);
@@ -155,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             xSensor = 0;
             ySensor = 1;
         }
-        float x = 0, y = 0, tilt = 3;
+        float x = 0, y = 0, tilt = 2;
         // Assign x/y values
         if (firstRun)
         {
@@ -227,15 +220,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return sequence;
     }
     public void changeOpacity(final Button btnToChange) {
-        // ChatGPT
+        // ChatGPT gave solution to delaying actions, pausing threads did not work well.
+        // https://developer.android.com/reference/android/os/Handler
         Handler handler = new Handler();
-        // First change: Set alpha to 64 after 0ms
         btnToChange.getBackground().setAlpha(32);
-        // Second change: Set alpha back to 255 after 3 seconds
-        handler.postDelayed(() -> btnToChange.getBackground().setAlpha(255), 500);
+        handler.postDelayed(() -> btnToChange.getBackground().setAlpha(255), 500); // Handler method to run after specified time, This is how i managed to space out the rounds
     }
     public void CorrectInput(List<Integer> sequence) {
+        int correct = 0;
+
         if (playerInput.equals(sequence)){ // On Successful PLayer Input
+            correct = 1;
+        }
+        else  { // On unsuccessful input
+            if (!playerInput.isEmpty()) {
+                // Check if the latest input is correct
+                int currentIndex = playerInput.size() - 1;
+                if (currentIndex < sequence.size() && playerInput.get(currentIndex) != sequence.get(currentIndex)) {
+                    // Mismatch found
+                    correct = -1;
+                }
+                // If sizes match but player input is still wrong, handle it
+                if (playerInput.size() == sequence.size() && !playerInput.equals(sequence)) {
+                    correct = -1;
+                }
+            }
+        }
+
+        if (correct == 1){
             Handler handler = new Handler(); // Allows Scheduling of the round
             for (int i = 0; i<2; i++)
             {
@@ -245,15 +257,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         mSensorManager.unregisterListener(this);
                         ResetButtons();
 
-                        Context context = getApplicationContext();
-                        CharSequence text = "Nice!";
-                        int duration = Toast.LENGTH_SHORT;
-                        Toast toast = Toast.makeText(context, text, duration);
-                        toast.show();
-
                         playerInput.clear();
                         score += roundSequence.size();
-                        roundLength += 2;
+                        roundSequence.addAll(RandomSequence(2)); // Add 2 more to sequence
+                        roundCounter++;
                         Celebration();
                     }
                     else {
@@ -261,14 +268,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     }
                 }, i * 3000);}
         }
-        else  { // On unsuccessful input
-            if ((playerInput.size() != sequence.size()) && !playerInput.isEmpty()) {
-                int latestInput = playerInput.get(playerInput.size() - 1);
-                if ( latestInput != sequence.get(playerInput.size() - 1) ){
-                    mSensorManager.unregisterListener(this);
-                    OpenHighScores(null);
-                }
-            }
+        else if (correct == -1){
+            mSensorManager.unregisterListener(this);
+            GameOver();
         }
     }
     public void ResetButtons() {
@@ -278,10 +280,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         btnNorth.getBackground().setAlpha(255);
         btnSouth.getBackground().setAlpha(255);
     }
-
     public void Celebration() {
+        tvRound.setText("Round " + roundCounter);
         Handler handler = new Handler(); // Allows Scheduling of the round
-
         for (int i = 0; i <= 3;i++){
             int index = i;
             handler.postDelayed(() -> {
@@ -295,5 +296,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }, i * 1000);
         }
+    }
+    public void GameOver() {
+        //  Get context to display pop-up on
+        Context context = getApplicationContext();
+        //  Build Dialog
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("GAME OVER")
+                .setMessage("Your Score was: " + String.valueOf(score))
+                .setPositiveButton("SEE HIGHSCORES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        OpenHighScores(null);
+                    }
+                })
+                .setNegativeButton("Play Again", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        //  Reset Game Variables
+                        ResetButtons();
+                        firstRun = true;
+                        roundSequence = RandomSequence(4);
+                        score=0;
+                        roundCounter = 1;
+                        playerInput.clear();
+                        Play(null);
+                    }
+                })
+                .create();
+        dialog.show();
     }
 }

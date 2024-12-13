@@ -1,5 +1,7 @@
 package com.example.mad_final_game;
 
+import static java.sql.Types.NULL;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -51,7 +53,12 @@ public class HighscoreActivity extends AppCompatActivity {
         tvScore = findViewById(R.id.tvScores);
 
         DisplayScores(); // Update Leaderboard
-        if (score != -1){ // If a score is present open submit popup
+
+        List<Highscore> list = dataSource.getAllHighscores();
+        // Sort by score in descending order
+        list.sort((h1, h2) -> Integer.compare(h2.getHighscore(), h1.getHighscore()));
+        int scoreToBeat = list.get(4).getHighscore(); // Get 5th highest score
+        if (score > scoreToBeat){ // If a score is present open submit popup
             addHighscore(null);
         }
         //  Setup Numbering tv
@@ -81,11 +88,15 @@ public class HighscoreActivity extends AppCompatActivity {
         //  Variables
         String nameMsg = "";
         String scoreMsg = "";
+        int scoresAmount = 5;
         List<Highscore> list = dataSource.getAllHighscores();
         // Sort by score in descending order
         list.sort((h1, h2) -> Integer.compare(h2.getHighscore(), h1.getHighscore()));
         //  Foreach entry populate score and name tv's
-        for (int i = 0; i < 5;i++) {
+        if (list.size() < 5){
+            scoresAmount = list.size();
+        }
+        for (int i = 0; i < scoresAmount;i++) {
             nameMsg += list.get(i).getName() + "\n";
             scoreMsg += list.get(i).getScore() + "\n";
         }
@@ -97,4 +108,6 @@ public class HighscoreActivity extends AppCompatActivity {
     public void GoMainMenu(View v) {
         finish();
     }
+
+    // Pause
 }

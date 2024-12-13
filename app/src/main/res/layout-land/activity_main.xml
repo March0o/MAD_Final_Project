@@ -129,12 +129,14 @@
             app:layout_constraintGuide_percent="0.5" />
 
         <TextView
-            android:id="@+id/tvInput"
-            android:layout_width="76dp"
-            android:layout_height="20dp"
+            android:id="@+id/tvRound"
+            android:layout_width="109dp"
+            android:layout_height="39dp"
             android:layout_marginTop="4dp"
-            android:text="TextView"
+            android:text="Round 1"
             android:textAlignment="center"
+            android:textColor="@color/main_text"
+            android:textSize="20sp"
             android:visibility="visible"
             app:layout_constraintBottom_toTopOf="@+id/btnSouth"
             app:layout_constraintEnd_toEndOf="parent"
@@ -175,7 +177,7 @@
             android:background="@color/buttons"
             android:onClick="Play"
             android:text="PLAY"
-            android:textColor="@color/secondary_text"
+            android:textColor="@color/white"
             android:textSize="34sp" />
 
         <Button
@@ -185,7 +187,7 @@
             android:background="@color/buttons"
             android:onClick="OpenHighScores"
             android:text="High Scores"
-            android:textColor="@color/secondary_text" />
+            android:textColor="@color/white" />
 
     </LinearLayout>
 

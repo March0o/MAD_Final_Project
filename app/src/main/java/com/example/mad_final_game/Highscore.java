@@ -13,7 +13,6 @@ public class Highscore {
     public String getName() {
         return Name;
     }
-
     public void setId(long id) {
         this.id = id;
     }
@@ -23,7 +22,6 @@ public class Highscore {
     public void setName(String name) {
         this.Name = name;
     }
-
     public int getHighscore() {
         return Score;
     }
